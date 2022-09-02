@@ -13,7 +13,7 @@ jobs:
 
       - uses: actions/checkout@v3
         with:
-          repository: https://github.com/davidalger/warden.git
+          repository: davidalger/warden
           ref: master
           path: warden
 
