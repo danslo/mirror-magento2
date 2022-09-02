@@ -18,4 +18,4 @@ jobs:
           path: warden
 
       - run: echo "$GITHUB_WORKSPACE/warden/bin" >> $GITHUB_PATH
-      - run: warden
+      - run: warden svc up
