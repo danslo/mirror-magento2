@@ -7,18 +7,107 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Magento
+        uses: actions/checkout@v3
         with:
           path: magento2
 
-      - uses: actions/checkout@v3
+      - name: Checkout Warden
+        uses: actions/checkout@v3
         with:
           repository: davidalger/warden
           ref: master
           path: warden
 
-      - run: echo "$GITHUB_WORKSPACE/warden/bin" >> $GITHUB_PATH
-      - run: warden svc up
+      - name: Checkout Cypress Testing Suite
+        uses: actions/checkout@v3
+        with:
+          repository: elgentos/magento2-cypress-testing-suite
+          ref: main
+          path: cypress-testing-suite
 
-      - run: warden env up
+      - name: Add warden to path
+        run: echo "$GITHUB_WORKSPACE/warden/bin" >> $GITHUB_PATH
+
+      - name: Initialize warden
+        run: warden svc up
+
+      - name: Initialize environment
+        run: warden env up
         working-directory: magento2
+
+      - name: Install magento
+        run: >
+          warden env exec php-fpm bin/magento setup:install \
+              --backend-frontname=backend \
+              --amqp-host=rabbitmq \
+              --amqp-port=5672 \
+              --amqp-user=guest \
+              --amqp-password=guest \
+              --db-host=db \
+              --db-name=magento \
+              --db-user=magento \
+              --db-password=magento \
+              --search-engine=elasticsearch7 \
+              --elasticsearch-host=elasticsearch \
+              --elasticsearch-port=9200 \
+              --elasticsearch-index-prefix=magento2 \
+              --elasticsearch-enable-auth=0 \
+              --elasticsearch-timeout=15 \
+              --http-cache-hosts=varnish:80 \
+              --session-save=redis \
+              --session-save-redis-host=redis \
+              --session-save-redis-port=6379 \
+              --session-save-redis-db=2 \
+              --session-save-redis-max-concurrency=20 \
+              --cache-backend=redis \
+              --cache-backend-redis-server=redis \
+              --cache-backend-redis-db=0 \
+              --cache-backend-redis-port=6379 \
+              --page-cache=redis \
+              --page-cache-redis-server=redis \
+              --page-cache-redis-db=1 \
+              --page-cache-redis-port=6379
+        working-directory: magento2
+
+      - name: Install sample data
+        run: warden env exec php-fpm bin/magento sampledata:deploy
+        working-directory: magento2
+
+      - name: Setup upgrade
+        run: warden env exec php-fpm bin/magento setup:upgrade
+        working-directory: magento2
+
+      - name: Update configuration
+        run: >
+          warden env exec php-fpm bin/magento config:set --lock-env web/unsecure/base_url "https://app.magento2.test/"
+          warden env exec php-fpm bin/magento config:set --lock-env web/secure/base_url "https://app.magento2.test/"
+          warden env exec php-fpm bin/magento config:set --lock-env web/secure/offloader_header X-Forwarded-Proto
+          warden env exec php-fpm bin/magento config:set --lock-env web/secure/use_in_frontend 1
+          warden env exec php-fpm bin/magento config:set --lock-env web/secure/use_in_adminhtml 1
+          warden env exec php-fpm bin/magento config:set --lock-env web/seo/use_rewrites 1
+          warden env exec php-fpm bin/magento config:set --lock-env system/full_page_cache/caching_application 2
+          warden env exec php-fpm bin/magento config:set --lock-env system/full_page_cache/ttl 604800
+          warden env exec php-fpm bin/magento config:set --lock-env catalog/search/enable_eav_indexer 1
+          warden env exec php-fpm bin/magento config:set --lock-env dev/static/sign 0
+        working-directory: magento2
+
+      - name: Reindex
+        run: warden env exec php-fpm indexer:reindex
+        working-directory: magento2
+
+      - name: Install Cypress
+        run: >
+          warden env exec php-fpm npm install cypress cypress-file-upload cypress-localstorage-commands cypress-tags typescript --save-dev
+        working-directory: magento2
+
+      - name: Copy Cypress Config
+        run: >
+          rm -rf cypress/{fixtures,page-objects,integration}/hyva
+          sed -i 's/https:\/\/example.com\//https:\/\/app.magento.test\//g' cypress.config.js
+          cp -rf cypress $GITHUB_WORKSPACE/magento2/
+          cp cypress.config.js $GITHUB_WORKSPACE/magento2/
+        working-directory: cypress-testing-suite
+
+      - name: Run Cypress
+        run: warden env exec php-fpm npx cypress run
