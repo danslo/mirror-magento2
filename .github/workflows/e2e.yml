@@ -105,8 +105,8 @@ jobs:
 
       - name: Install Sample Data
         shell: 'script -q -e -c "bash {0}"'
-        run: warden env exec php-fpm php -f dev/tools/build-sample-data.php -- --ce-source="$GITHUB_WORKSPACE/magento2"
-        working-directory: magento2/sample-data
+        run: warden env exec php-fpm php -f sample-data/dev/tools/build-sample-data.php -- --ce-source="/var/www/html"
+        working-directory: magento2
 
       - name: Setup Upgrade
         shell: 'script -q -e -c "bash {0}"'
