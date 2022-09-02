@@ -47,7 +47,9 @@ jobs:
         run: echo "127.0.0.1 app.magento2.test" | sudo tee -a /etc/hosts
 
       - name: Set Permissions
-        run: sudo chown -R $(id -u):$(id -g) $GITHUB_WORKSPACE/magento2
+        run: |
+          sudo chown -R runner:docker $GITHUB_WORKSPACE/magento2
+          ls -la $GITHUB_WORKSPACE
 
       - name: Composer Install
         shell: 'script -q -e -c "bash {0}"'
