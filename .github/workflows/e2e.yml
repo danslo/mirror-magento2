@@ -7,9 +7,9 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     steps:
-      #- uses: actions/checkout@v3
-      #  with:
-      #    path: magento2
+      - uses: actions/checkout@v3
+        with:
+          path: magento2
 
       - uses: actions/checkout@v3
         with:
@@ -19,3 +19,6 @@ jobs:
 
       - run: echo "$GITHUB_WORKSPACE/warden/bin" >> $GITHUB_PATH
       - run: warden svc up
+
+      - run: warden env up
+        working-directory: magento2
