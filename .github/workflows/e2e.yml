@@ -157,7 +157,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 18
 
       - name: Install Cypress
         run: npm install cypress cypress-file-upload cypress-localstorage-commands cypress-tags typescript --save-dev
