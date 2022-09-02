@@ -61,14 +61,14 @@ jobs:
         run: warden svc up
 
       - name: Sign Certificate
-        run: warden sign-certificate magento2.test
+        run: warden sign-certificate ${TRAEFIK_DOMAIN}
 
       - name: Initialize Environment
         run: warden env up
         working-directory: magento2
 
       - name: Add Hosts Entry
-        run: echo "127.0.0.1 app.magento2.test" | sudo tee -a /etc/hosts
+        run: echo "127.0.0.1 ${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}" | sudo tee -a /etc/hosts
 
       - name: Set Permissions
         run: sudo chown -R $(id -u):$(id -g) $GITHUB_WORKSPACE/magento2
@@ -133,8 +133,8 @@ jobs:
       - name: Update Configuration
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          warden env exec php-fpm bin/magento config:set --lock-env web/unsecure/base_url "https://app.magento2.test/"
-          warden env exec php-fpm bin/magento config:set --lock-env web/secure/base_url "https://app.magento2.test/"
+          warden env exec php-fpm bin/magento config:set --lock-env web/unsecure/base_url "https://${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}/"
+          warden env exec php-fpm bin/magento config:set --lock-env web/secure/base_url "https://${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}/"
           warden env exec php-fpm bin/magento config:set --lock-env web/secure/offloader_header X-Forwarded-Proto
           warden env exec php-fpm bin/magento config:set --lock-env web/secure/use_in_frontend 1
           warden env exec php-fpm bin/magento config:set --lock-env web/secure/use_in_adminhtml 1
@@ -163,7 +163,10 @@ jobs:
 
       - name: Create Integration Token
         shell: 'script -q -e -c "bash {0}"'
-        run: warden env exec php-fpm n98-magerun admin:token:create john
+        run: |
+          warden env exec php-fpm php --version
+          warden env exec php-fpm n98-magerun --version
+          warden env exec php-fpm n98-magerun admin:token:create john
         working-directory: magento2
 
       - name: Install Cypress
@@ -174,7 +177,7 @@ jobs:
       - name: Copy Cypress Config
         run: |
           rm -rf cypress/{fixtures,page-objects,integration}/hyva
-          sed -i 's/https:\/\/example.com\//https:\/\/app.magento.test\//g' cypress.config.js
+          sed -i 's/https:\/\/example.com\//https:\/\/${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}\//g' cypress.config.js
           cp -rf cypress $GITHUB_WORKSPACE/magento2/
           cp cypress.config.js $GITHUB_WORKSPACE/magento2/
         working-directory: cypress-testing-suite
