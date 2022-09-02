@@ -14,9 +14,16 @@ jobs:
       - name: Checkout Magento
         uses: actions/checkout@v3
         with:
+          path: mageos
+
+      - name: Checkout Magento
+        uses: actions/checkout@v3
+        with:
           path: magento2
           ref: 2.4.5
           repository: magento/magento2
+
+      - run: cp mageos/.env magento2/.env
 
       - name: Checkout Warden
         uses: actions/checkout@v3
