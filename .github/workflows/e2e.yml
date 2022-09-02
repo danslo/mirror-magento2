@@ -37,15 +37,6 @@ jobs:
           ref: 2.4-develop # todo, use current branch name
           path: magento2/sample-data
 
-      - name: Install Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 12
-
-      - name: Install Cypress
-        run: npm install cypress cypress-file-upload cypress-localstorage-commands cypress-tags typescript --save-dev
-        working-directory: cypress-testing-suite
-
       - name: Setup Warden
         run: echo "$GITHUB_WORKSPACE/warden/bin" >> $GITHUB_PATH
 
@@ -74,9 +65,7 @@ jobs:
 
       - name: Composer Install
         shell: 'script -q -e -c "bash {0}"'
-        run: |
-          warden env exec php-fpm composer --version
-          warden env exec php-fpm composer install
+        run: warden env exec php-fpm php -dmemory_limit=-1 /usr/bin/composer install
         working-directory: magento2
 
       - name: Install Magento
@@ -164,6 +153,15 @@ jobs:
           echo "::set-output name=token::$(warden env exec php-fpm n98-magerun admin:token:create john)"
           mv vendor/symfony/console.bak vendor/symfony/console
         working-directory: magento2
+
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 12
+
+      - name: Install Cypress
+        run: npm install cypress cypress-file-upload cypress-localstorage-commands cypress-tags typescript --save-dev
+        working-directory: cypress-testing-suite
 
       - name: Remove Hyva Tests
         run: rm -rf cypress/{fixtures,page-objects,integration}/hyva
