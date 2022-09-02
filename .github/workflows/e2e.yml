@@ -26,6 +26,13 @@ jobs:
           ref: main
           path: cypress-testing-suite
 
+      - name: Checkout Sample Data
+        uses: actions/checkout@v3
+        with:
+          repository: magento/magento2-sample-data
+          ref: 2.4-develop # todo, use current branch name
+          path: magento2/sample-data
+
       - name: Install Magerun
         run: curl -O https://files.magerun.net/n98-magerun2.phar
         working-directory: magento2
@@ -47,21 +54,18 @@ jobs:
         run: echo "127.0.0.1 app.magento2.test" | sudo tee -a /etc/hosts
 
       - name: Set Permissions
-        run: |
-          id
-          whoami
-          sudo chown -R $(id -u):$(id -g) $GITHUB_WORKSPACE/magento2
-          ls -la $GITHUB_WORKSPACE
-          ls -la $GITHUB_WORKSPACE/magento2
+        run: sudo chown -R $(id -u):$(id -g) $GITHUB_WORKSPACE/magento2
 
-      - name: Composer Install
+      - name: Update User and Group IDs
         shell: 'script -q -e -c "bash {0}"'
         run: |
           warden env exec php-fpm sudo groupmod -g $(id -g) www-data
           warden env exec php-fpm sudo usermod -u $(id -u) www-data
-          warden env exec php-fpm id
-          warden env exec php-fpm ls -la
-          warden env exec php-fpm composer install
+        working-directory: magento2
+
+      - name: Composer Install
+        shell: 'script -q -e -c "bash {0}"'
+        run: warden env exec php-fpm composer install
         working-directory: magento2
 
       - name: Install Magento
@@ -101,8 +105,8 @@ jobs:
 
       - name: Install Sample Data
         shell: 'script -q -e -c "bash {0}"'
-        run: warden env exec php-fpm bin/magento sampledata:deploy
-        working-directory: magento2
+        run: warden env exec php-fpm php -f dev/tools/build-sample-data.php -- --ce-source="$GITHUB_WORKSPACE/magento2"
+        working-directory: magento2/sample-data
 
       - name: Setup Upgrade
         shell: 'script -q -e -c "bash {0}"'
@@ -111,7 +115,7 @@ jobs:
 
       - name: Update Configuration
         shell: 'script -q -e -c "bash {0}"'
-        run: >
+        run: |
           warden env exec php-fpm bin/magento config:set --lock-env web/unsecure/base_url "https://app.magento2.test/"
           warden env exec php-fpm bin/magento config:set --lock-env web/secure/base_url "https://app.magento2.test/"
           warden env exec php-fpm bin/magento config:set --lock-env web/secure/offloader_header X-Forwarded-Proto
@@ -147,12 +151,11 @@ jobs:
 
       - name: Install Cypress
         shell: 'script -q -e -c "bash {0}"'
-        run: >
-          warden env exec php-fpm npm install cypress cypress-file-upload cypress-localstorage-commands cypress-tags typescript --save-dev
+        run: warden env exec php-fpm npm install cypress cypress-file-upload cypress-localstorage-commands cypress-tags typescript --save-dev
         working-directory: magento2
 
       - name: Copy Cypress Config
-        run: >
+        run: |
           rm -rf cypress/{fixtures,page-objects,integration}/hyva
           sed -i 's/https:\/\/example.com\//https:\/\/app.magento.test\//g' cypress.config.js
           cp -rf cypress $GITHUB_WORKSPACE/magento2/
