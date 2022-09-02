@@ -1,0 +1,88 @@
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  e2e:
+    services:
+      elasticsearch:
+        image: elasticsearch:7.17
+        env:
+          discovery.type: single-node
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 9200:9200
+
+      redis:
+        image: redis:6.2
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: magento
+          MYSQL_USER: user
+          MYSQL_PASSWORD: password
+          MYSQL_ROOT_PASSWORD: rootpassword
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+      rabbitmq:
+        image: rabbitmq:3.9
+        env:
+          RABBITMQ_DEFAULT_USER: guest
+          RABBITMQ_DEFAULT_PASS: guest
+        ports:
+          - 5672:5672
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.1
+          tools: composer:v2
+          coverage: none
+      - run: composer install
+      - run: >
+          bin/magento setup:install \
+              --backend-frontname=backend \
+              --amqp-host=localhost \
+              --amqp-port=5672 \
+              --amqp-user=guest \
+              --amqp-password=guest \
+              --db-host=localhost \
+              --db-name=magento \
+              --db-user=user \
+              --db-password=password \
+              --search-engine=elasticsearch7 \
+              --elasticsearch-host=localhost \
+              --elasticsearch-port=9200 \
+              --elasticsearch-index-prefix=magento2 \
+              --elasticsearch-enable-auth=0 \
+              --elasticsearch-timeout=15 \
+              --session-save=redis \
+              --session-save-redis-host=localhost \
+              --session-save-redis-port=6379 \
+              --session-save-redis-db=2 \
+              --session-save-redis-max-concurrency=20 \
+              --cache-backend=redis \
+              --cache-backend-redis-server=localhost \
+              --cache-backend-redis-db=0 \
+              --cache-backend-redis-port=6379
