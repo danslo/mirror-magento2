@@ -47,7 +47,7 @@ jobs:
         run: echo "127.0.0.1 app.magento2.test" | sudo tee -a /etc/hosts
 
       - name: Check Permissions
-        run: >
+        run: |
           id
           whoami
           ls -la $GITHUB_WORKSPACE
