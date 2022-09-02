@@ -46,6 +46,15 @@ jobs:
       - name: Add Hosts Entry
         run: echo "127.0.0.1 app.magento2.test" | sudo tee -a /etc/hosts
 
+      - name: Check Permissions
+        run: >
+          id
+          whoami
+          ls -la $GITHUB_WORKSPACE
+          warden env exec php-fpm id
+          warden env exec php-fpm whoami
+          warden env exec ls -la
+
       - name: Composer Install
         shell: 'script -q -e -c "bash {0}"'
         run: warden env exec php-fpm composer install
