@@ -64,7 +64,12 @@ jobs:
         run: warden sign-certificate ${TRAEFIK_DOMAIN}
 
       - name: Initialize Environment
-        run: touch .env && warden env up
+        run: warden env up
+        working-directory: magento2
+
+      - name: Install Cypress
+        shell: 'script -q -e -c "bash {0}"'
+        run: warden env exec php-fpm npm install cypress cypress-file-upload cypress-localstorage-commands cypress-tags typescript --save-dev
         working-directory: magento2
 
       - name: Add Hosts Entry
@@ -169,11 +174,6 @@ jobs:
           rm -rf generated/*
           echo "::set-output name=token::$(warden env exec php-fpm n98-magerun admin:token:create john)"
           mv vendor/symfony/console.bak vendor/symfony/console
-        working-directory: magento2
-
-      - name: Install Cypress
-        shell: 'script -q -e -c "bash {0}"'
-        run: warden env exec php-fpm npm install cypress cypress-file-upload cypress-localstorage-commands cypress-tags typescript --save-dev
         working-directory: magento2
 
       - name: Copy Cypress Config
