@@ -9,7 +9,7 @@ env:
 
 jobs:
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout Magento
         uses: actions/checkout@v3
@@ -65,7 +65,7 @@ jobs:
 
       - name: Composer Install
         shell: 'script -q -e -c "bash {0}"'
-        run: warden env exec php-fpm php -dmemory_limit=-1 /usr/bin/composer install
+        run: warden env exec php-fpm composer install
         working-directory: magento2
 
       - name: Install Magento
