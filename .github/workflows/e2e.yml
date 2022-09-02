@@ -57,6 +57,9 @@ jobs:
       - name: Composer Install
         shell: 'script -q -e -c "bash {0}"'
         run: |
+          warden env exec php-fpm sudo groupmod -g $(id -g) www-data
+          warden env exec php-fpm sudo usermod -u $(id -u) www-data
+          warden env exec php-fpm id
           warden env exec php-fpm ls -la
           warden env exec php-fpm composer install
         working-directory: magento2
