@@ -163,7 +163,7 @@ jobs:
 
       - name: Create Integration Token
         shell: 'script -q -e -c "bash {0}"'
-        run: warden env exec php-fpm n98-magerun --root-dir=/var/www/html admin:token:create john
+        run: warden env exec -w /tmp php-fpm n98-magerun --root-dir=/var/www/html admin:token:create john
         working-directory: magento2
 
       - name: Install Cypress
