@@ -27,11 +27,7 @@ jobs:
           path: cypress-testing-suite
 
       - name: Setup Warden
-        run: >
-          echo "$GITHUB_WORKSPACE/warden/bin" >> $GITHUB_PATH
-          shopt -s expand_aliases
-          alias e="warden env exec php-fpm"
-          alias m="e bin/magento"
+        run: echo "$GITHUB_WORKSPACE/warden/bin" >> $GITHUB_PATH
 
       - name: Initialize Warden
         run: warden svc up
@@ -45,7 +41,7 @@ jobs:
 
       - name: Install Magento
         run: >
-          m setup:install \
+          warden env exec php-fpm bin/magento setup:install \
               --backend-frontname=backend \
               --amqp-host=rabbitmq \
               --amqp-port=5672 \
@@ -78,34 +74,34 @@ jobs:
         working-directory: magento2
 
       - name: Install Sample Data
-        run: m sampledata:deploy
+        run: warden env exec php-fpm bin/magento sampledata:deploy
         working-directory: magento2
 
       - name: Setup Upgrade
-        run: m setup:upgrade
+        run: warden env exec php-fpm bin/magento setup:upgrade
         working-directory: magento2
 
       - name: Update Configuration
         run: >
-          m config:set --lock-env web/unsecure/base_url "https://app.magento2.test/"
-          m config:set --lock-env web/secure/base_url "https://app.magento2.test/"
-          m config:set --lock-env web/secure/offloader_header X-Forwarded-Proto
-          m config:set --lock-env web/secure/use_in_frontend 1
-          m config:set --lock-env web/secure/use_in_adminhtml 1
-          m config:set --lock-env web/seo/use_rewrites 1
-          m config:set --lock-env system/full_page_cache/caching_application 2
-          m config:set --lock-env system/full_page_cache/ttl 604800
-          m config:set --lock-env catalog/search/enable_eav_indexer 1
-          m config:set --lock-env dev/static/sign 0
+          warden env exec php-fpm bin/magento config:set --lock-env web/unsecure/base_url "https://app.magento2.test/"
+          warden env exec php-fpm bin/magento config:set --lock-env web/secure/base_url "https://app.magento2.test/"
+          warden env exec php-fpm bin/magento config:set --lock-env web/secure/offloader_header X-Forwarded-Proto
+          warden env exec php-fpm bin/magento config:set --lock-env web/secure/use_in_frontend 1
+          warden env exec php-fpm bin/magento config:set --lock-env web/secure/use_in_adminhtml 1
+          warden env exec php-fpm bin/magento config:set --lock-env web/seo/use_rewrites 1
+          warden env exec php-fpm bin/magento config:set --lock-env system/full_page_cache/caching_application 2
+          warden env exec php-fpm bin/magento config:set --lock-env system/full_page_cache/ttl 604800
+          warden env exec php-fpm bin/magento config:set --lock-env catalog/search/enable_eav_indexer 1
+          warden env exec php-fpm bin/magento config:set --lock-env dev/static/sign 0
         working-directory: magento2
 
       - name: Reindex
-        run: m indexer:reindex
+        run: warden env exec php-fpm indexer:reindex
         working-directory: magento2
 
       - name: Install Cypress
         run: >
-          e npm install cypress cypress-file-upload cypress-localstorage-commands cypress-tags typescript --save-dev
+          warden env exec php-fpm npm install cypress cypress-file-upload cypress-localstorage-commands cypress-tags typescript --save-dev
         working-directory: magento2
 
       - name: Copy Cypress Config
@@ -117,4 +113,4 @@ jobs:
         working-directory: cypress-testing-suite
 
       - name: Run Cypress
-        run: e npx cypress run
+        run: warden env exec php-fpm npx cypress run
