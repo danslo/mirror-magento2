@@ -64,7 +64,7 @@ jobs:
         run: warden sign-certificate ${TRAEFIK_DOMAIN}
 
       - name: Initialize Environment
-        run: warden env up
+        run: touch .env && warden env up
         working-directory: magento2
 
       - name: Add Hosts Entry
