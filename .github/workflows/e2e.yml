@@ -11,7 +11,7 @@ jobs:
         env:
           discovery.type: single-node
         options: >-
-          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-cmd "curl http://127.0.0.1:9200/_cluster/health"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
@@ -63,26 +63,26 @@ jobs:
       - run: >
           bin/magento setup:install \
               --backend-frontname=backend \
-              --amqp-host=localhost \
+              --amqp-host=127.0.0.1 \
               --amqp-port=5672 \
               --amqp-user=guest \
               --amqp-password=guest \
-              --db-host=localhost \
+              --db-host=127.0.0.1 \
               --db-name=magento \
               --db-user=user \
               --db-password=password \
               --search-engine=elasticsearch7 \
-              --elasticsearch-host=localhost \
+              --elasticsearch-host=127.0.0.1 \
               --elasticsearch-port=9200 \
               --elasticsearch-index-prefix=magento2 \
               --elasticsearch-enable-auth=0 \
               --elasticsearch-timeout=15 \
               --session-save=redis \
-              --session-save-redis-host=localhost \
+              --session-save-redis-host=127.0.0.1 \
               --session-save-redis-port=6379 \
               --session-save-redis-db=2 \
               --session-save-redis-max-concurrency=20 \
               --cache-backend=redis \
-              --cache-backend-redis-server=localhost \
+              --cache-backend-redis-server=127.0.0.1 \
               --cache-backend-redis-db=0 \
               --cache-backend-redis-port=6379
