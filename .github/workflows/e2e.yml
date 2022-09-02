@@ -162,8 +162,12 @@ jobs:
         working-directory: magento2
 
       - name: Create Integration Token
+        id: create_token
         shell: 'script -q -e -c "bash {0}"'
-        run: warden env exec -w /tmp php-fpm n98-magerun --root-dir=/var/www/html admin:token:create john
+        run: |
+          mv vendor/symfony/console vendor/symfony/console.bak
+          echo "::set-output name=token::$(warden env exec -w /tmp php-fpm n98-magerun --root-dir=/var/www/html admin:token:create john)"
+          mv vendor/symfony/console.bak vendor/symfony/console
         working-directory: magento2
 
       - name: Install Cypress
@@ -182,3 +186,5 @@ jobs:
       - name: Run Cypress
         shell: 'script -q -e -c "bash {0}"'
         run: warden env exec php-fpm npx cypress run
+        env:
+          CYPRESS_MAGENTO2_ADMIN_TOKEN: ${{ steps.create_token.outputs.token }}"
