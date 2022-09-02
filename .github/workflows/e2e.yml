@@ -3,9 +3,6 @@ on:
     branches:
       - '**'
 
-env:
-  COMPOSE_INTERACTIVE_NO_CLI: 1
-
 jobs:
   e2e:
     runs-on: ubuntu-latest
@@ -42,7 +39,11 @@ jobs:
         run: warden env up
         working-directory: magento2
 
+      - name: Add Hosts Entry
+        run: echo "127.0.0.1 app.magento2.test" | sudo tee -a /etc/hosts
+
       - name: Install Magento
+        shell: 'script -q -e -c "bash {0}"'
         run: >
           warden env exec php-fpm bin/magento setup:install \
               --backend-frontname=backend \
@@ -77,14 +78,17 @@ jobs:
         working-directory: magento2
 
       - name: Install Sample Data
+        shell: 'script -q -e -c "bash {0}"'
         run: warden env exec php-fpm bin/magento sampledata:deploy
         working-directory: magento2
 
       - name: Setup Upgrade
+        shell: 'script -q -e -c "bash {0}"'
         run: warden env exec php-fpm bin/magento setup:upgrade
         working-directory: magento2
 
       - name: Update Configuration
+        shell: 'script -q -e -c "bash {0}"'
         run: >
           warden env exec php-fpm bin/magento config:set --lock-env web/unsecure/base_url "https://app.magento2.test/"
           warden env exec php-fpm bin/magento config:set --lock-env web/secure/base_url "https://app.magento2.test/"
@@ -99,10 +103,12 @@ jobs:
         working-directory: magento2
 
       - name: Reindex
+        shell: 'script -q -e -c "bash {0}"'
         run: warden env exec php-fpm indexer:reindex
         working-directory: magento2
 
       - name: Install Cypress
+        shell: 'script -q -e -c "bash {0}"'
         run: >
           warden env exec php-fpm npm install cypress cypress-file-upload cypress-localstorage-commands cypress-tags typescript --save-dev
         working-directory: magento2
@@ -116,4 +122,5 @@ jobs:
         working-directory: cypress-testing-suite
 
       - name: Run Cypress
+        shell: 'script -q -e -c "bash {0}"'
         run: warden env exec php-fpm npx cypress run
