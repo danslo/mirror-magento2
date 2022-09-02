@@ -55,8 +55,14 @@ jobs:
           ref: 2.4-develop # todo, use current branch name
           path: magento2/sample-data
 
-      - name: Install Xvfb
-        run: sudo apt-get install xvfb
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 12
+
+      - name: Install Cypress
+        run: npm install cypress cypress-file-upload cypress-localstorage-commands cypress-tags typescript --save-dev
+        working-directory: magento2
 
       - name: Setup Warden
         run: echo "$GITHUB_WORKSPACE/warden/bin" >> $GITHUB_PATH
@@ -82,11 +88,6 @@ jobs:
         run: |
           warden env exec php-fpm sudo groupmod -g $(id -g) www-data
           warden env exec php-fpm sudo usermod -u $(id -u) www-data
-        working-directory: magento2
-
-      - name: Install Cypress
-        shell: $TTY_SHELL
-        run: warden env exec php-fpm npm install cypress cypress-file-upload cypress-localstorage-commands cypress-tags typescript --save-dev
         working-directory: magento2
 
       - name: Composer Install
@@ -190,6 +191,9 @@ jobs:
         working-directory: cypress-testing-suite
 
       - name: Run Cypress
-        shell: $TTY_SHELL
-        run: warden env exec -e "CYPRESS_MAGENTO2_ADMIN_TOKEN=${{ steps.create_token.outputs.token }}" php-fpm npx cypress run
-        working-directory: magento2
+        uses: GabrielBB/xvfb-action@v1
+        with:
+          run: npx cypress run
+          working-directory: magento2
+        env:
+          CYPRESS_MAGENTO2_ADMIN_TOKEN: ${{ steps.create_token.outputs.token }}
