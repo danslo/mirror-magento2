@@ -166,6 +166,7 @@ jobs:
         shell: 'script -q -e -c "bash {0}"'
         run: |
           mv vendor/symfony/console vendor/symfony/console.bak
+          rm -rf generated/*
           echo "::set-output name=token::$(warden env exec php-fpm n98-magerun admin:token:create john)"
           mv vendor/symfony/console.bak vendor/symfony/console
         working-directory: magento2
@@ -185,6 +186,5 @@ jobs:
 
       - name: Run Cypress
         shell: 'script -q -e -c "bash {0}"'
-        run: warden env exec php-fpm npx cypress run
-        env:
-          CYPRESS_MAGENTO2_ADMIN_TOKEN: ${{ steps.create_token.outputs.token }}"
+        run: warden env exec -e "CYPRESS_MAGENTO2_ADMIN_TOKEN=${{ steps.create_token.outputs.token }}" php-fpm npx cypress run
+        working-directory: magento2
