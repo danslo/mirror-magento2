@@ -3,6 +3,9 @@ on:
     branches:
       - '**'
 
+env:
+  COMPOSE_INTERACTIVE_NO_CLI: 1
+
 jobs:
   e2e:
     runs-on: ubuntu-latest
