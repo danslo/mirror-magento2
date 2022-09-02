@@ -48,7 +48,9 @@ jobs:
 
       - name: Set Permissions
         run: |
-          sudo chown -R runner:docker $GITHUB_WORKSPACE/magento2
+          id
+          whoami
+          sudo chown -R $(id -u):$(id -g) $GITHUB_WORKSPACE/magento2
           ls -la $GITHUB_WORKSPACE
           ls -la $GITHUB_WORKSPACE/magento2
 
