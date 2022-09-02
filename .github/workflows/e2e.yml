@@ -15,7 +15,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: mageos
-
       - name: Checkout Magento
         uses: actions/checkout@v3
         with:
@@ -58,9 +57,6 @@ jobs:
       - name: Initialize Environment
         run: warden env up
         working-directory: magento2
-
-      - name: Add Hosts Entry
-        run: echo "127.0.0.1 ${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}" | sudo tee -a /etc/hosts
 
       - name: Set Permissions
         run: sudo chown -R $(id -u):$(id -g) $GITHUB_WORKSPACE/magento2
