@@ -14,4 +14,4 @@ jobs:
       - name: Run Cypress
         run: echo $CYPRESS_MAGENTO2_BASE_URL
         env:
-          CYPRESS_MAGENTO2_BASE_URL: 'https://${TRAEFIK_SUBDOMAIN}.${TRAEFIK_DOMAIN}/'
+          CYPRESS_MAGENTO2_BASE_URL: 'https://${{ env.TRAEFIK_SUBDOMAIN }}.${{ env.TRAEFIK_DOMAIN }}/'
