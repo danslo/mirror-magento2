@@ -15,7 +15,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: magento2
-          ref: '1df4565'
+          ref: 2.4.5
+          repository: magento/magento2
 
       - name: Checkout Warden
         uses: actions/checkout@v3
