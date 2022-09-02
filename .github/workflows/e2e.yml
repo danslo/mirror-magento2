@@ -130,7 +130,7 @@ jobs:
 
       - name: Reindex
         shell: 'script -q -e -c "bash {0}"'
-        run: warden env exec php-fpm indexer:reindex
+        run: warden env exec php-fpm bin/magento indexer:reindex
         working-directory: magento2
 
       - name: Create Admin User
