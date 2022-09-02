@@ -26,6 +26,10 @@ jobs:
           ref: main
           path: cypress-testing-suite
 
+      - name: Install Magerun
+        run: curl -O https://files.magerun.net/n98-magerun2.phar
+        working-directory: magento2
+
       - name: Setup Warden
         run: echo "$GITHUB_WORKSPACE/warden/bin" >> $GITHUB_PATH
 
@@ -41,6 +45,11 @@ jobs:
 
       - name: Add Hosts Entry
         run: echo "127.0.0.1 app.magento2.test" | sudo tee -a /etc/hosts
+
+      - name: Composer Install
+        shell: 'script -q -e -c "bash {0}"'
+        run: warden env exec php-fpm composer install
+        working-directory: magento2
 
       - name: Install Magento
         shell: 'script -q -e -c "bash {0}"'
@@ -105,6 +114,22 @@ jobs:
       - name: Reindex
         shell: 'script -q -e -c "bash {0}"'
         run: warden env exec php-fpm indexer:reindex
+        working-directory: magento2
+
+      - name: Create Admin User
+        shell: 'script -q -e -c "bash {0}"'
+        run: >
+          warden env exec php-fpm php n98-magerun2.phar admin:user:create \
+            --admin-user=john \
+            --admin-firstname=John \
+            --admin-lastname=Doe \
+            --admin-password=JohnDoe123 \
+            --admin-email="john@example.com"
+        working-directory: magento2
+
+      - name: Create Integration Token
+        shell: 'script -q -e -c "bash {0}"'
+        run: warden env exec php-fpm php n98-magerun2.phar admin:token:create john
         working-directory: magento2
 
       - name: Install Cypress
