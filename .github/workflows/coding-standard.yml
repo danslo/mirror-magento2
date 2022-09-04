@@ -9,34 +9,5 @@ jobs:
   coding-standard:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Set PHP Version
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.1'
-          tools: composer:v2
-          coverage: none
-
-      - name: Install Dependencies
-        run: composer install
-
-      # The coding standard that is locked in composer.lock might be outdated.
-      # We always want to use the most recent version.
-      - name: Update Coding Standard
-        run: composer update magento/magento-coding-standard
-
-      - name: Register Coding Standard
-        run: vendor/bin/phpcs --config-set installed_paths vendor/magento/magento-coding-standard,vendor/phpcompatibility/php-compatibility
-
-      # ACMRT: added, copied, modified, renamed, type-changed. This excludes deleted files.
-      - name: Get Changed Files
-        id: changed-files
-        run: echo "::set-output name=files::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)"
-
-      - name: Coding Standard Check
-        if: ${{ steps.changed-files.outputs.files }}
-        run: vendor/bin/phpcs --standard=Magento2 ${{ steps.changed-files.outputs.files }}
+      - name: Coding Standard
+        uses: danslo/github-actions-magento2/coding-standard@main
